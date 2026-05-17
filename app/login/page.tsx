@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -27,6 +27,24 @@ export default function LoginPage() {
     if (res?.error) {
       toast.error("Invalid username or password.");
       return;
+    }
+
+    // check session to see if customer is approved
+    const session = await getSession();
+    const isCustomer = session?.user?.role === "CUSTOMER";
+    const isApproved = Boolean(session?.user?.isApproved);
+
+    if (isCustomer && !isApproved) {
+      const ok = window.confirm(
+        "Your account is pending approval by the distributor. You will not be able to access the catalog until approved. Go to the pending status page?",
+      );
+      toast.success("Signed in");
+      if (ok) {
+        router.push("/customer/pending");
+        router.refresh();
+        return;
+      }
+      // If they dismiss, still send them back to home (which will redirect appropriately)
     }
 
     toast.success("Signed in");

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatInr } from "@/lib/format";
 import { setProductActiveAction } from "@/lib/actions/admin-products";
 import { AdminProductCreateForm } from "@/components/admin-product-create-form";
+import { AdminProductBulkUpload } from "@/components/admin-product-bulk-upload";
 
 export default async function AdminProductsPage() {
   await auth();
@@ -19,7 +20,10 @@ export default async function AdminProductsPage() {
         <p className="mt-1 text-sm text-slate-600">Manage catalog, pricing, and stock.</p>
       </div>
 
-      <AdminProductCreateForm />
+      <div className="grid gap-6 md:grid-cols-2">
+        <AdminProductCreateForm />
+        <AdminProductBulkUpload />
+      </div>
 
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">

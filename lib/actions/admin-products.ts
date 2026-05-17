@@ -86,3 +86,84 @@ export async function setProductActiveAction(productId: string, isActive: boolea
   revalidatePath("/admin/products");
   revalidatePath("/customer/catalog");
 }
+
+export async function createProductsBulkAction(_prev: unknown, formData: FormData) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return { ok: false as const, error: "Unauthorized" };
+  }
+
+  const csv = String(formData.get("csv") ?? "").trim();
+  if (!csv) return { ok: false as const, error: "No CSV provided" };
+
+  function parseLine(line: string) {
+    const fields: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        fields.push(cur.trim());
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    fields.push(cur.trim());
+    return fields;
+  }
+
+  const lines = csv.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  // allow header row
+  const hasHeader = lines.length > 0 && /name/i.test(lines[0]) && /brand/i.test(lines[0]);
+  if (hasHeader) lines.shift();
+
+  const results: { line: number; ok: boolean; error?: string }[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const rowNum = i + 1;
+    const fields = parseLine(lines[i]);
+    const [name, brand, category, unit, priceStr, stockStr, imageUrl] = fields;
+    if (!name || !brand || !category || !unit || !priceStr) {
+      results.push({ line: rowNum, ok: false, error: "Missing required fields" });
+      continue;
+    }
+    const price = Number(priceStr.replace(/,/g, ""));
+    const stock = Number(stockStr ?? "0");
+    if (!Number.isFinite(price) || price < 0) {
+      results.push({ line: rowNum, ok: false, error: "Invalid price" });
+      continue;
+    }
+
+    try {
+      await prisma.product.create({
+        data: {
+          name: String(name),
+          brand: String(brand),
+          category: String(category),
+          unit: String(unit),
+          pricePerUnit: price,
+          stockAvailable: Number.isFinite(stock) && stock >= 0 ? Math.floor(stock) : 0,
+          imageUrl: (imageUrl && String(imageUrl)) || null,
+          isActive: true,
+        },
+      });
+      results.push({ line: rowNum, ok: true });
+    } catch (e: any) {
+      results.push({ line: rowNum, ok: false, error: e?.message ?? String(e) });
+    }
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/customer/catalog");
+
+  const created = results.filter((r) => r.ok).length;
+  const errors = results.filter((r) => !r.ok);
+  return { ok: true as const, created, errors };
+}
