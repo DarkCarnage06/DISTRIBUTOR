@@ -55,9 +55,9 @@ export default async function CatalogPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Catalog</h1>
-        <p className="mt-1 text-sm text-slate-600">Browse FMCG lines by brand or category. Prices are per unit shown.</p>
+      <div className="rounded-2xl bg-emerald-950 p-6 text-white sm:p-8">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Catalog</h1>
+        <p className="mt-1 text-sm text-emerald-100">Browse FMCG lines by brand or category. Prices are per unit shown.</p>
       </div>
 
       <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-end md:justify-between">
@@ -82,7 +82,7 @@ export default async function CatalogPage({
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {products.map((p) => (
-          <article key={p.id} className="flex flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <article key={p.id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-emerald-700 focus-within:border-emerald-700">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{p.brand}</p>

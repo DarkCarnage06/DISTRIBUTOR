@@ -11,3 +11,7 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+.wholesale-login {
+  background: radial-gradient(ellipse at 12% 15%, #d1fae5, transparent 60%), #eef5f1;
+}
