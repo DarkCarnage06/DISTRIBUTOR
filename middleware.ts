@@ -11,6 +11,10 @@ export default auth((req) => {
   if (isApiAuth) return NextResponse.next();
 
   if (!session) {
+    if (pathname === "/customer/catalog" || pathname === "/customer/catalog/") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
     if (pathname.startsWith("/admin") || pathname.startsWith("/customer")) {
       const url = new URL("/login", req.url);
       url.searchParams.set("callbackUrl", pathname);
